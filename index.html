@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVoiceAnon+: Emotion-Preserving Streaming Speaker Anonymization via Frame-Level Acoustic Distillation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;0,7..72,500;0,7..72,600;0,7..72,700;1,7..72,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="container">
+        <h1>StreamVoiceAnon+: Emotion-Preserving Streaming Speaker Anonymization via Frame-Level Acoustic Distillation</h1>
+        <p class="subtitle">Anonymous submission to Interspeech 2026</p>
+        <div class="resource-links">
+            <a href="#" class="resource-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg> Paper (coming soon)</a>
+            <a href="#" class="resource-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> Code (coming soon)</a>
+            <a href="#" class="resource-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Pretrained Models (coming soon)</a>
+        </div>
+    </div>
+</header>
+
+<!-- Abstract -->
+<section class="section" id="abstract">
+    <div class="container">
+        <h2>Abstract</h2>
+        <p class="abstract-text">
+            We address the challenge of preserving emotional content in streaming speaker anonymization (SA). Neural audio codec language models trained for audio continuation tend to degrade source emotion: content tokens discard emotional information, and the model defaults to dominant acoustic patterns rather than preserving paralinguistic attributes. We propose supervised finetuning with neutral-emotion utterance pairs from the same speaker, combined with frame-level emotion distillation on acoustic token hidden states. All modifications are confined to finetuning, which takes less than 2 hours on 4 GPUs and adds zero inference latency overhead, while maintaining a competitive 180ms streaming latency. On the VoicePrivacy 2024 protocol, our approach achieves a 49.2% UAR (emotion preservation) with 5.77% WER (intelligibility), a +24% relative UAR improvement over the baseline (39.7%&rarr;49.2%) and +10% over the emotion-prompt variant, while maintaining strong privacy (EER 49.0%).
+        </p>
+        <p class="index-terms"><strong>Index Terms:</strong> speaker anonymization, emotion preservation, streaming speech processing, knowledge distillation</p>
+    </div>
+</section>
+
+<!-- Privacy-Emotion Trade-off (Figure 1 in paper) -->
+<section class="section section-alt" id="tradeoff">
+    <div class="container">
+        <h2>Privacy&ndash;Emotion Trade-off</h2>
+        <div class="figure-full">
+            <img src="figures/privacy_emotion_tradeoff.png" alt="Privacy-emotion trade-off for streaming speaker anonymization methods">
+            <p class="caption">Figure 1: Privacy-emotion trade-off for streaming speaker anonymization methods. Our method (orange star) compared to prior streaming methods (triangles).</p>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture (Figure 2 in paper) -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>Proposed Method</h2>
+        <div class="architecture-figure">
+            <img src="figures/sva_sft_hid_stat_acoust.png" alt="Training and inference configurations">
+            <p class="caption">Figure 2: Training and inference configurations. <em>Training</em>: prompt and source share the same speaker but differ in emotion, forcing the model to generate emotional output from source content rather than copying prompt-specific patterns. Frame-level emotion distillation (&Lscr;<sub>emo</sub>, dashed) on Slow AR acoustic hidden states provides additional learning signal. <em>Inference</em>: a neutral utterance from the target anonymous speaker conceals source identity while the finetuned model preserves source emotion; no latency is added over the baseline.</p>
+        </div>
+        <div class="method-points">
+            <div class="method-point">
+                <span class="point-marker"></span>
+                <p><strong>Supervised Finetuning (SFT)</strong> &mdash; Train on neutral-emotion utterance pairs from the same speaker, combined with frame-level emotion distillation on acoustic token hidden states. All modifications are confined to finetuning.</p>
+            </div>
+            <div class="method-point">
+                <span class="point-marker"></span>
+                <p><strong>Acoustic Emotion Distillation</strong> &mdash; Frame-level distillation from a pretrained emotion extractor into acoustic hidden states. The acoustic branch provides cleaner gradient flow, avoiding interference with content supervision on the semantic branch.</p>
+            </div>
+            <div class="method-point">
+                <span class="point-marker"></span>
+                <p><strong>Zero Inference Overhead</strong> &mdash; At inference, the distillation head and Emotion Encoder are removed; the model operates with the same architecture and latency as the baseline.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Results Table (Table 1 in paper) -->
+<section class="section section-alt" id="tables">
+    <div class="container">
+        <h2>Main Results</h2>
+        <div class="table-scroll">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Type</th>
+                        <th>WER &darr;</th>
+                        <th>UAR &uarr;</th>
+                        <th>EER-L &uarr;</th>
+                        <th>EER-S &uarr;</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Original</td>
+                        <td>&ndash;</td>
+                        <td>1.83</td>
+                        <td>&ndash;</td>
+                        <td>5.16</td>
+                        <td>&ndash;</td>
+                    </tr>
+                    <tr class="offline-row">
+                        <td>EASY [5]</td>
+                        <td>Offline</td>
+                        <td>2.70</td>
+                        <td>63.81</td>
+                        <td>&ndash;</td>
+                        <td>45.89</td>
+                    </tr>
+                    <tr>
+                        <td>GenVC-small [12]</td>
+                        <td>Semi</td>
+                        <td>8.20</td>
+                        <td>34.23</td>
+                        <td>48.48</td>
+                        <td>15.94</td>
+                    </tr>
+                    <tr class="grayed-row">
+                        <td>SLT24 [17]</td>
+                        <td>Online</td>
+                        <td>5.70</td>
+                        <td>57.00</td>
+                        <td>31.40</td>
+                        <td>10.12</td>
+                    </tr>
+                    <tr>
+                        <td>DarkStream [18]</td>
+                        <td>Online</td>
+                        <td>8.75</td>
+                        <td>34.73</td>
+                        <td>47.26</td>
+                        <td><strong>21.83</strong></td>
+                    </tr>
+                    <tr>
+                        <td>TVTSyn [11]</td>
+                        <td>Online</td>
+                        <td>5.35</td>
+                        <td>37.32</td>
+                        <td>47.55</td>
+                        <td>14.57</td>
+                    </tr>
+                    <tr>
+                        <td class="indent-td">StreamVoiceAnon [4]<br>vctk-1fix</td>
+                        <td>Online</td>
+                        <td><strong>4.54</strong></td>
+                        <td>39.72</td>
+                        <td>47.19</td>
+                        <td>15.92</td>
+                    </tr>
+                    <tr>
+                        <td class="indent-td">crema-emo-4rnd</td>
+                        <td>Online</td>
+                        <td>6.59</td>
+                        <td>44.59</td>
+                        <td>46.53</td>
+                        <td><u>18.63</u></td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong>Ours</strong><br>pool-distill</td>
+                        <td>Online</td>
+                        <td><u>5.08</u></td>
+                        <td><u>46.30</u></td>
+                        <td><u>48.62</u></td>
+                        <td>18.32</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td class="indent-td"><strong>frame-distill</strong></td>
+                        <td>Online</td>
+                        <td>5.77</td>
+                        <td><strong>49.22</strong></td>
+                        <td><strong>48.98</strong></td>
+                        <td>18.30</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="table-note">Table 1: Comparison with prior methods. &uarr;/&darr;: higher/lower is better. <strong>Bold</strong>: best streaming result; <u>underline</u>: second best. SLT24 is grayed out due to insufficient privacy (EER-L &lt; 40%). Our two variants correspond to Exp4 (pool-distill) and Exp7 (frame-distill) in the ablation study (Table 2).</p>
+    </div>
+</section>
+
+<!-- Emotion Spotlight: Sad -->
+<section class="section spotlight" id="spotlight">
+    <div class="container">
+        <h2>Emotion Spotlight: Sadness</h2>
+        <p class="spotlight-desc">
+            The most dramatic improvement occurs for "sad": from 8.0% (baseline) to 42.6% (ours), a +431% relative gain. The emotion-prompt baseline nearly destroys sadness recognition (8% UAR, near random for 4 classes). Our method recovers sad emotion to 42.6% UAR, demonstrating that acoustic-level distillation captures the subtle prosodic cues that prompt-based approaches miss entirely.
+        </p>
+        <div class="spotlight-samples">
+            <div class="spotlight-sample" data-emotion="sad" data-utterance="01">
+                <div class="sample-label">Utterance 1</div>
+                <div class="spotlight-row">
+                    <div class="player-cell">
+                        <span class="player-label">Original</span>
+                        <div class="waveform" id="wave-spotlight-01-original" data-src="audio/sad/01_original.wav"></div>
+                    </div>
+                    <div class="player-cell">
+                        <span class="player-label">crema-emo-4rnd</span>
+                        <div class="waveform" id="wave-spotlight-01-sva_emo" data-src="audio/sad/01_sva_emo.wav"></div>
+                    </div>
+                    <div class="player-cell">
+                        <span class="player-label accent">Ours (frame-distill)</span>
+                        <div class="waveform" id="wave-spotlight-01-ours" data-src="audio/sad/01_ours.wav"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="spotlight-sample" data-emotion="sad" data-utterance="02">
+                <div class="sample-label">Utterance 2</div>
+                <div class="spotlight-row">
+                    <div class="player-cell">
+                        <span class="player-label">Original</span>
+                        <div class="waveform" id="wave-spotlight-02-original" data-src="audio/sad/02_original.wav"></div>
+                    </div>
+                    <div class="player-cell">
+                        <span class="player-label">crema-emo-4rnd</span>
+                        <div class="waveform" id="wave-spotlight-02-sva_emo" data-src="audio/sad/02_sva_emo.wav"></div>
+                    </div>
+                    <div class="player-cell">
+                        <span class="player-label accent">Ours (frame-distill)</span>
+                        <div class="waveform" id="wave-spotlight-02-ours" data-src="audio/sad/02_ours.wav"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Full Audio Comparison -->
+<section class="section section-alt" id="comparison">
+    <div class="container">
+        <h2>Full Audio Comparison</h2>
+        <p class="section-desc">3 utterances per emotion, 6 methods each. Click a waveform to play, or use "Play all" to hear methods sequentially.</p>
+
+        <div class="emotion-tabs">
+            <button class="tab active" data-emotion="angry">Angry</button>
+            <button class="tab" data-emotion="happy">Happy</button>
+            <button class="tab" data-emotion="sad">Sad</button>
+            <button class="tab" data-emotion="neutral">Neutral</button>
+        </div>
+
+        <div class="comparison-grid" id="comparison-grid">
+            <div class="grid-header">
+                <div class="grid-cell header-cell"></div>
+                <div class="grid-cell header-cell">Original</div>
+                <div class="grid-cell header-cell">vctk-1fix</div>
+                <div class="grid-cell header-cell">emo-4rnd</div>
+                <div class="grid-cell header-cell">DarkStream</div>
+                <div class="grid-cell header-cell">TVTSyn</div>
+                <div class="grid-cell header-cell highlight-header">Ours</div>
+            </div>
+            <!-- Rows are populated by JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Ablation Study (Table 2 in paper) -->
+<section class="section" id="ablation">
+    <div class="container">
+        <h2>Ablation Study</h2>
+        <div class="table-scroll">
+            <table class="results-table ablation-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Model</th>
+                        <th colspan="6">Components</th>
+                        <th rowspan="2">WER &darr;</th>
+                        <th colspan="5">Emotion &uarr;</th>
+                        <th colspan="2">Privacy &uarr;</th>
+                    </tr>
+                    <tr>
+                        <th>FT-CREMA</th>
+                        <th>Neu-Emo</th>
+                        <th>[SEP]</th>
+                        <th>StatPool</th>
+                        <th>Causal</th>
+                        <th>Distill</th>
+                        <th>Average</th>
+                        <th>Ang</th>
+                        <th>Hap</th>
+                        <th>Neu</th>
+                        <th>Sad</th>
+                        <th>EER-L</th>
+                        <th>EER-S</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Baseline</td>
+                        <td></td><td></td><td></td><td></td><td></td><td>&ndash;</td>
+                        <td>4.54</td>
+                        <td>39.7</td><td>35.8</td><td>81.9</td><td>33.1</td><td>8.0</td>
+                        <td>47.19</td><td>15.92</td>
+                    </tr>
+                    <tr>
+                        <td>Exp1</td>
+                        <td>&#10003;</td><td></td><td></td><td></td><td></td><td>&ndash;</td>
+                        <td>5.00</td>
+                        <td>41.1</td><td>36.3</td><td><strong>79.6</strong></td><td>35.5</td><td>13.2</td>
+                        <td>45.70</td><td>14.88</td>
+                    </tr>
+                    <tr>
+                        <td>Exp2</td>
+                        <td>&#10003;</td><td>&#10003;</td><td></td><td></td><td></td><td>&ndash;</td>
+                        <td>5.16</td>
+                        <td>45.3</td><td>35.3</td><td>75.9</td><td>48.2</td><td>21.7</td>
+                        <td>47.31</td><td>16.73</td>
+                    </tr>
+                    <tr>
+                        <td>Exp3</td>
+                        <td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td></td><td></td><td>&ndash;</td>
+                        <td>5.25</td>
+                        <td>47.4</td><td>34.8</td><td>72.9</td><td>50.7</td><td>31.2</td>
+                        <td>47.46</td><td>16.53</td>
+                    </tr>
+                    <tr>
+                        <td>Exp4</td>
+                        <td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td></td><td>&ndash;</td>
+                        <td><u>5.08</u></td>
+                        <td>46.3</td><td>40.9</td><td>75.1</td><td>44.2</td><td>25.0</td>
+                        <td><u>48.62</u></td><td><strong>18.32</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Exp5</td>
+                        <td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td></td><td>&#10003;</td><td>&ndash;</td>
+                        <td>5.32</td>
+                        <td>48.5</td><td>40.3</td><td>65.2</td><td><u>53.6</u></td><td>34.8</td>
+                        <td>48.19</td><td>16.78</td>
+                    </tr>
+                    <tr>
+                        <td>Exp6</td>
+                        <td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td></td><td>&#10003;</td><td>Sem</td>
+                        <td>6.23</td>
+                        <td>48.2</td><td><strong>48.7</strong></td><td>66.7</td><td>49.7</td><td>27.7</td>
+                        <td>47.93</td><td>17.10</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong>Exp7</strong></td>
+                        <td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td></td><td>&#10003;</td><td>Aco</td>
+                        <td><strong>5.77</strong></td>
+                        <td><strong>49.2</strong></td><td>38.8</td><td>62.8</td><td>52.7</td><td><strong>42.6</strong></td>
+                        <td><strong>48.98</strong></td><td><u>18.30</u></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="table-note">Table 2: Ablation study. &#10003; indicates active components. StatPool/Causal: aggregation approach. Distill: distillation target branch (Sem = semantic, Aco = acoustic; &ndash; = acoustic by default). <strong>Bold</strong>: best among Exp1&ndash;7; <u>underline</u>: second best. All metrics on IEMOCAP following VoicePrivacy 2024 protocol.</p>
+
+        <h3 class="subsection-heading">Ablation Audio Samples</h3>
+        <p class="section-desc">Compare key ablation configurations on sad utterances to hear the incremental effect of each component.</p>
+        <div class="ablation-grid" id="ablation-grid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <details class="bibtex-details">
+            <summary>BibTeX (available after acceptance)</summary>
+            <pre class="bibtex"><code>@inproceedings{anonymous2026streamvoiceanon,
+  title={StreamVoiceAnon+: Emotion-Preserving Streaming
+         Speaker Anonymization via Frame-Level Acoustic
+         Distillation},
+  author={Anonymous},
+  booktitle={Proc. Interspeech},
+  year={2026}
+}</code></pre>
+        </details>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<script src="script.js"></script>
+</body>
+</html>
